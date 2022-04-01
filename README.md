@@ -19,7 +19,7 @@ Question 2 uses a Best-Fit algorithm for contiguous memory allocation. This proj
 ## Makefile
 
 The makefile is included in this repository and can be found under makefile in the repository.
-[makefile](CP386-A4/makefile)
+[makefile](makefile)
 
 ## Individual Contibution
 
