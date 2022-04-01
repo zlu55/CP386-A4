@@ -36,33 +36,33 @@ The contiguous memory allocation uses memory partitions to allocate memory. Thes
 
 The program allows the user to input a total memory size, and continously asks for a command between RQ, RL, Status, or Exit
 
-* RQ - Request memory 
-command>RQ P0 200000 B
-Successfully allocated 200000 to process P0
-command>RQ P1 350000 B
-Successfully allocated 350000 to process P1
-command>RQ P2 300000 B
-Successfully allocated 300000 to process P2
+* RQ - Request memory   
+command>RQ P0 200000 B  
+Successfully allocated 200000 to process P0  
+command>RQ P1 350000 B  
+Successfully allocated 350000 to process P1  
+command>RQ P2 300000 B  
+Successfully allocated 300000 to process P2  
 
-If the memory is full, it will give a message and ask for a new command 
-command>RQ P5 80000 B
+If the memory is full, it will give a message and ask for a new command   
+command>RQ P5 80000 B  
 No hole of sufficient size
 
-* RL - Release Memory
-command>RL P0
-Releasing memory for process P0
-Successfully released memory for process P0
+* RL - Release Memory  
+command>RL P0  
+Releasing memory for process P0  
+Successfully released memory for process P0  
 
-* Status - Status Report
-Partitions [Allocated Memory = 770000]
-Address [200000 : 549999] Process P1
-Address [550000 : 849999] Process P2
-Address [850000 : 969999] Process P3
-Holes [Free Memory = 230000]
-Address[000000 : 199999] len = 200000
-Address[970000 : 999999] len = 30000
+* Status - Status Report  
+Partitions [Allocated Memory = 770000]  
+Address [200000 : 549999] Process P1  
+Address [550000 : 849999] Process P2  
+Address [850000 : 969999] Process P3  
+Holes [Free Memory = 230000]  
+Address[000000 : 199999] len = 200000  
+Address[970000 : 999999] len = 30000  
 
-* Exit
+* Exit  
 Terminates the program
 
 ## About Developers
