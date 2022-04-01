@@ -9,12 +9,16 @@ Customers request and release resources from the bank. The banker will keep trac
 banker will grant a request if it satisfies the safety algorithm. If a request does not leave the system in a
 safe state, the banker will deny it.
 
+Go to [Question 1](191739390_190454440_a04_q1.c)
+
 ### Question 2
 
-Question 2 uses a Best-Fit algorithm for contiguous memory allocation. This project manages a contiguous region of memory of size MAX where addresses may range from 0 ... MAX − 1. This program responds to three different requests:
-• Request for a contiguous block of memory (RQ)
-• Release of a contiguous block of memory (RL)
-• Report the regions of free and allocated memory (Status)
+Question 2 uses a Best-Fit algorithm for contiguous memory allocation. This project manages a contiguous region of memory of size MAX where addresses may range from 0 ... MAX − 1. This program responds to three different requests:  
+• Request for a contiguous block of memory (RQ)  
+• Release of a contiguous block of memory (RL)  
+• Report the regions of free and allocated memory (Status)  
+
+Go to [Question 2](191739390_190454440_a04_q2.c)
 
 ## Makefile
 
