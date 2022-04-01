@@ -26,7 +26,9 @@ size MAX where addresses may range from 0 ... MAX - 1.
 char cmd[3];
 char pid[3];
 char sort_type[2];
-int space;
+size_t space;
+size_t total_space = 0;
+int status_flag = 0;
 
 // Create a struct similar to linked list to store memory blocks. ]
 // Contains next, previous pointers, starting and ending memory addresses
@@ -43,15 +45,6 @@ typedef struct MemoryBlock
 MemoryBlock *memory;
 // init memory size to zero
 size_t starting_mem = 0;
-
-
-void request(){
-    //if first insert 
-    //else best fit
-}
-void release(){
-    //release code here
-}
 
 //Function to store user input into a memory block struct
 MemoryBlock *allocate(char *pid, size_t start_mem, size_t end_mem, MemoryBlock *prev, MemoryBlock *next){
@@ -76,11 +69,102 @@ MemoryBlock *allocate(char *pid, size_t start_mem, size_t end_mem, MemoryBlock *
     return m;
 }
 
+void request(char *pid, char *sort_type, size_t mem_size){
+    // Search for smallest hole in memory by traversing
+    // the linked list
+    MemoryBlock *h = NULL;
+    if (strcmp(sort_type,"B") == 0){
+        MemoryBlock *iter = memory;
+        size_t min = -1;
+        while(iter){
+            size_t hsize = (iter->end_mem - iter->start_mem + 1);
+            if (iter->processid == NULL && mem_size<=hsize && hsize < min ){
+                min = hsize;
+                h = iter;
+            }
+            iter = iter->next;
+        }
+    }else{
+        printf("Invalid Input\n");
+        return;
+    }
+    if(!h || h->processid != NULL){
+        printf("No hole of sufficient size\n");
+        return;
+    } else {
+        total_space += mem_size;
+    }
+    h->processid = malloc(sizeof(char)*strlen(pid)+1);
+    strcpy(h->processid,pid);
+    if(h->end_mem - h->start_mem + 1 == mem_size){
+        return; 
+    }
+    h->next = allocate("",h->start_mem + mem_size,h->end_mem,h,h->next);
+    h->end_mem = h->start_mem + mem_size - 1;
+    printf("Successfully allocated %ld to process %s\n",mem_size,pid);
+    return;
+}
+void release(char *pid){
+    printf("Releasing memory for process %s\n",pid);
+    int flag = 1;
+    MemoryBlock *iter = memory;
+    while(iter){
+        if(iter->processid && strcmp(iter->processid,pid) == 0){
+            total_space -= (iter->end_mem - iter->start_mem); 
+            free(iter->processid);
+            iter->processid = NULL;
+            flag = 0;
+        }
+        if(iter->processid == NULL && iter->prev && iter->prev->processid == NULL){
+            MemoryBlock *t = iter->prev;
+            iter->prev = t->prev;
+            if(t->prev){
+                t->prev->next = iter;
+            }
+            iter->start_mem = t->start_mem;
+            free(t);
+        }
+        if(iter->prev == NULL){
+            memory = iter;
+        }
+        iter = iter->next;
+    }
+    if(flag){
+        printf("Nothing released\n");
+    }
+    printf("Successfully released memory for process %s\n",pid);
+    return flag;
+}
+
+void status_report(){
+    MemoryBlock *iter = memory;
+    if (status_flag == 0){
+        printf("Partitions [Allocated Memory = %06zu]\n",total_space-1);
+        while(iter) {
+            if(iter->processid) {
+                printf("Address [%06zu : %06zu] ", iter->start_mem, iter->end_mem);
+                printf("Process %s\n", iter->processid);
+            }
+            iter=iter->next;
+        }
+    }
+    if (status_flag == 1){
+        printf("Holes [Free Memory = %06zu]\n",(starting_mem - total_space + 1));
+        while(iter) {
+            if(!iter->processid) {
+                printf("Address[%06zu : %06zu] len = %zu\n", iter->start_mem, iter->end_mem, (iter->end_mem - iter->start_mem + 1));
+            }
+            iter=iter->next;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
-    //temp for testing, will be initialized to a block structure
-    int starting_mem = atoi(argv[1]);
-    printf("Allocated %d bytes of memory\n", starting_mem);
+    //int starting_mem = atoi(argv[1]);
+    sscanf(argv[1], "%zu", &starting_mem);
+    memory = allocate("",0,starting_mem-1,NULL,NULL);
+    printf("Allocated %ld bytes of memory\n", starting_mem);
     printf("command>");
     
     char command[128];
@@ -89,24 +173,22 @@ int main(int argc, char *argv[])
 
     while (strcmp(command,"Exit")!= 0)
     {
-        printf("%s", cmd);
         sscanf(command, "%s %s %d %s", cmd, pid, &space, sort_type);
 
         if (strcmp("RQ", cmd) == 0){
-            //testing
-            printf("%s\n", cmd);
-            printf("%s\n", pid);
-            printf("%d\n", space);
-            printf("%s\n", sort_type);
+            request(pid,sort_type,space);
         }
         else if (strcmp("RL", cmd) == 0){
-            //testing
-            printf("%s\n", cmd);
-            printf("%s\n", pid);
+            release(pid);
+            // printf("%s\n", cmd);
+            // printf("%s\n", pid);
         }
         else if (strcmp("Status", cmd) == 0){ // Status report
-            //testing
-            printf("Status Report Here\n");
+            // printf("Status Report Here\n");
+            status_report();
+            status_flag = 1;
+            status_report();
+            status_flag = 0;
         }
         else if (strcmp("Exit", cmd) == 0){ // Status report
             printf("Exiting\n");
