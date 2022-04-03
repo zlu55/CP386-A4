@@ -104,7 +104,7 @@ void request(char *pid, char *sort_type, size_t mem_size){
     printf("Successfully allocated %ld to process %s\n",mem_size,pid);
     return;
 }
-void release(char *pid){
+int release(char *pid){
     printf("Releasing memory for process %s\n",pid);
     int flag = 1;
     MemoryBlock *iter = memory;
