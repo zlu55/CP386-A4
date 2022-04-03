@@ -8,8 +8,14 @@ Adam Gerrish
 190454440
 gerr4440@mylaurier.ca
 adamgerrish
-*/
 
+CP386 Assignment 4 - Question 2
+Date: 2022-03-24
+Description: Uses Best-Fit algorithm for contiguous memory allocation. 
+This project will involve managing a contiguous region of memory of 
+size MAX where addresses may range from 0 ... MAX - 1.
+
+*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,6 +29,7 @@ char sort_type[2];
 size_t space;
 size_t total_space = 0;
 int status_flag = 0;
+
 // Create a struct similar to linked list to store memory blocks. ]
 // Contains next, previous pointers, starting and ending memory addresses
 // and the pid 
@@ -31,6 +38,7 @@ typedef struct MemoryBlock
     struct MemoryBlock *prev,*next;
     size_t start_mem, end_mem;
     char *processid;
+
 } MemoryBlock;
 
 //init memory block that will be used in main
@@ -46,7 +54,6 @@ MemoryBlock *allocate(char *pid, size_t start_mem, size_t end_mem, MemoryBlock *
     MemoryBlock *m = malloc(sizeof(MemoryBlock));
     m->start_mem = start_mem;
     m->end_mem = end_mem;
-
     if (strlen(pid) != 0){
         m->processid = malloc(sizeof(char)*(strlen(pid)+1));
         strcpy(m->processid,pid);
@@ -97,7 +104,7 @@ void request(char *pid, char *sort_type, size_t mem_size){
     printf("Successfully allocated %ld to process %s\n",mem_size,pid);
     return;
 }
-int release(char *pid){
+void release(char *pid){
     printf("Releasing memory for process %s\n",pid);
     int flag = 1;
     MemoryBlock *iter = memory;
@@ -166,17 +173,12 @@ int main(int argc, char *argv[])
 
     while (strcmp(command,"Exit")!= 0)
     {
-        //printf("%s", cmd);
-        sscanf(command, "%s %s %ld %s", cmd, pid, &space, sort_type);
+        sscanf(command, "%s %s %d %s", cmd, pid, &space, sort_type);
 
-        if (strcmp("RQ", cmd) == 0){ // Request
+        if (strcmp("RQ", cmd) == 0){
             request(pid,sort_type,space);
-            // printf("%s\n", cmd);
-            // printf("%s\n", pid);
-            // printf("%d\n", space);
-            // printf("%s\n", sort_type);
         }
-        else if (strcmp("RL", cmd) == 0){ // Release memory
+        else if (strcmp("RL", cmd) == 0){
             release(pid);
             // printf("%s\n", cmd);
             // printf("%s\n", pid);
@@ -188,7 +190,7 @@ int main(int argc, char *argv[])
             status_report();
             status_flag = 0;
         }
-        else if (strcmp("Exit", cmd) == 0){ // Exit
+        else if (strcmp("Exit", cmd) == 0){ // Status report
             printf("Exiting\n");
             break;
         }
@@ -202,3 +204,6 @@ int main(int argc, char *argv[])
             
     }
 }
+
+
+

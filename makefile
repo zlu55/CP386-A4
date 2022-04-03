@@ -3,7 +3,6 @@ All: runq1 runq2
 runq1: 191739390_190454440_a04_q1.c
 	gcc -o 
 
-
 CC = gcc
 CFLAGS = -Werror -Wall -g -std=gnu99
 LDFLAGS = -lrt -lpthread
