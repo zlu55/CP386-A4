@@ -173,7 +173,7 @@ int main(int argc, char *argv[])
 
     while (strcmp(command,"Exit")!= 0)
     {
-        sscanf(command, "%s %s %d %s", cmd, pid, &space, sort_type);
+        sscanf(command, "%s %s %ld %s", cmd, pid, &space, sort_type);
 
         if (strcmp("RQ", cmd) == 0){
             request(pid,sort_type,space);
