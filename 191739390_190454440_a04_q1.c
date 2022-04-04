@@ -19,6 +19,7 @@ adamgerrish
 
 //Global resource variables In textbook pdf pg432
 int *available = NULL;
+int threadRan = 0;
 int threadOrder[5] = {0, 0, 0, 0, 0};
 int max[5][4] = {{6, 4, 7, 3},
 		 {4, 2, 3, 2},
@@ -41,6 +42,9 @@ volatile mut_t mutex = ATOMIC_FLAG_INIT;
 
 #define acquire(m) while (atomic_flag_test_and_set(m))
 #define release(m) atomic_flag_clear(m)
+
+pthread_mutex_t lock;
+pthread_cond_t cond;
 
 //Compares two arrays, returns 0 if arr1 > arr2, otherwise returns 0
 int compareArray(int *arr1, int *arr2){
@@ -195,34 +199,56 @@ void statusUpdate(){
 }
 
 void* runThread(void* arg){
-  int *c = (int *) arg;
+  int c = *((int *) arg);
+
+  //lock resources
+  pthread_mutex_lock(&lock);
+
+  //Check for proper order
+  while(c != threadOrder[threadRan])
+    pthread_cond_wait(&cond, &lock);
+
+  printf("--> Customer/Thread %d\n", c);
+  printf("    Allocated resources: ");
+  for(int i = 0; i < 4; i++){
+    printf("%d ", allocated[c][i]);
+  }
+  printf("\n");
+
+  printf("    Needed: ");
+  for(int i = 0; i < 4; i++){
+    printf("%d ", need[c][i]);
+  }
+  printf("\n");
+  printf("    Available: ");
+  for(int i = 0; i < 4; i++){
+    printf("%d ", available[i]);
+  }
+  printf("\n");
+  sleep(1);
   
-  //for(int i=0;i<5;i++){
-    acquire(&mutex);
-    printf("--> Customer/Thread %d\n", c[0]);
-    printf("    Needed: ");
-    for(int i = 0; i < 4; i++){
-      printf("%d ", need[c[0]][i]);
-    }
-    printf("\n");
-    printf("    Available: ");
-    for(int i = 0; i < 4; i++){
-      printf("%d ", available[i]);
-    }
-    printf("\n");
-    printf("    Thread has started\n");
-    releaseResources(c[0], allocated[c[0]]);
-    printf("    Thread has finished\n");
-    printf("    Thread is releasing resources\n");
-    printf("    New  Available: ");
-    for(int i = 0; i < 4; i++){
-      printf("%d ", available[i]);
-    }
-    printf("\n");
-    release(&mutex);
-    // }
+  printf("    Thread has started\n");
   
-  return NULL;
+  for(int i = 0; i < 4; i++){
+    available[i] += allocated[c][i];
+    need[c][i] += allocated[c][i];
+    allocated[c][i] = 0;
+  }
+  printf("    Thread has finished\n");
+  printf("    Thread is releasing resources\n");
+  printf("    New  Available: ");
+  for(int i = 0; i < 4; i++){
+    printf("%d ", available[i]);
+  }
+  printf("\n");
+
+  sleep(1);
+  threadRan++;
+
+  //Unlock resources
+  pthread_cond_broadcast(&cond);
+  pthread_mutex_unlock(&lock);
+  pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]){
@@ -233,7 +259,9 @@ int main(int argc, char *argv[]){
   int args[4] = {0, 0, 0, 0};
   int cust = 0, out = 0;
   char code[10];
-  pthread_t t1, t2, t3, t4, t5;
+  pthread_t threads[5];
+  pthread_attr_t attr;
+  pthread_attr_init(&attr);
 
   //Print the number of customers
   printf("Number of Customers: %d\n", numCustomers);
@@ -267,7 +295,6 @@ int main(int argc, char *argv[]){
 
     //Perform actions based on command given (Turn user input into array of info)
     if(strcmp(code, "RQ") == 0){
-      printf("RQ select\n");
       out = safetyAlgo(cust, args);
       if(out == 1){
 	printf("State is safe, and request is satisfied\n");
@@ -276,7 +303,6 @@ int main(int argc, char *argv[]){
 	printf("State is unsafe\n");
       }
     }else if(strcmp(code, "RL") == 0){
-      printf("RL select\n");
       out = checkForResources(cust, args);
       if(out == 1){
 	printf("State is safe, and request is satisfied\n");
@@ -285,34 +311,19 @@ int main(int argc, char *argv[]){
 	printf("State is unsafe\n");
       }
     }else if(strcmp(code, "Status") == 0){
-      printf("Status select\n");
       statusUpdate();
     }else if(strcmp(code, "Run") == 0){
-      printf("Run select\n");
-      printSafeSeq();
+      printSafeSeq(); //Get safe sequence
 
+      //Create and join threads
       for(int i = 0; i < 5; i++){
-	pthread_create(&t1, NULL, runThread, &threadOrder[i]);
-	pthread_join(t1, NULL);
-	pthread_exit(&t1);
+	pthread_create(&threads[i], &attr, runThread,(void *)(&threadOrder[i]));
       }
-      /*pthread_create(&t2, NULL, runThread, &threadOrder[1]);
-      pthread_create(&t3, NULL, runThread, &threadOrder[2]);
-      pthread_create(&t4, NULL, runThread, &threadOrder[3]);
-      pthread_create(&t5, NULL, runThread, &threadOrder[4]);
-      pthread_join(t1, NULL);
-      pthread_join(t2, NULL);
-      pthread_join(t3, NULL);
-      pthread_join(t4, NULL);
-      pthread_join(t5, NULL);*/
+      for(int i = 0; i < 5; i++){
+	pthread_join(threads[i], NULL);
+      }
       
     }else if(strcmp(code, "Exit") == 0){
-      printf("Exit select");
-      pthread_exit(&t1);
-      pthread_exit(&t2);
-      pthread_exit(&t3);
-      pthread_exit(&t4);
-      pthread_exit(&t5);
       exit(0);
     }else{
       printf("Invalid input, use one of RQ, RL, Status, Run, Exit.\n");
