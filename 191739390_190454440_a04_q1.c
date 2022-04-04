@@ -15,9 +15,8 @@ adamgerrish
 #include <sys/types.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <stdatomic.h>
 
-//Global resource variables In textbook pdf pg432
+//Global resource variables
 int *available = NULL;
 int threadRan = 0;
 int threadOrder[5] = {0, 0, 0, 0, 0};
@@ -36,12 +35,6 @@ int need[5][4] = {{6, 4, 7, 3},
 		  {2, 5, 3, 3},
 		  {6, 3, 3, 2},
 		  {5, 5, 7, 5}};
- 
-typedef atomic_flag mut_t;
-volatile mut_t mutex = ATOMIC_FLAG_INIT;
-
-#define acquire(m) while (atomic_flag_test_and_set(m))
-#define release(m) atomic_flag_clear(m)
 
 pthread_mutex_t lock;
 pthread_cond_t cond;
