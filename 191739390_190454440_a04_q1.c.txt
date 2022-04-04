@@ -8,6 +8,8 @@ Adam Gerrish
 190454440
 gerr4440@mylaurier.ca
 adamgerrish
+
+Github: https://github.com/zlu55/CP386-A4
 */
 #include <stdio.h>
 #include <stdlib.h>
