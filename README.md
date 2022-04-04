@@ -37,7 +37,7 @@ Each group member was assigned one question from the assignment each.
 The banker's algorithm is used to properly manage resources in order to avoind a deadlock.  The program uses data structures to keep track of the resources, and updates them accordingly.  The program allows the user to request and release resources, only if it leaves the system in a safe state. It also allows the user to request a status update, run the system, or exit.
 
 Below is a test case:
-./Question1 10 5 7 8
+* ./Question1 10 5 7 8
 Number of Customers: 5
 Currently Available resources: 10 5 7 8 
 Maximum resources from file:
