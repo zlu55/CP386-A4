@@ -19,6 +19,7 @@ adamgerrish
 
 //Global resource variables In textbook pdf pg432
 int *available = NULL;
+int threadOrder[5] = {0, 0, 0, 0, 0};
 int max[5][4] = {{6, 4, 7, 3},
 		 {4, 2, 3, 2},
 		 {2, 5, 3, 3},
@@ -100,12 +101,64 @@ void requestResources(int customer, int needs[4]){
 }
 
 //Release resources according to request
-void releaseResources(int customer, int needs[4]){
+void releaseResources(int customer, int release[4]){
   for(int i = 0; i < 4; i++){
-    need[customer][i] += needs[i];
-    allocated[customer][i] -= needs[i];
-    available[i] += needs[i];
+    need[customer][i] += release[i];
+    allocated[customer][i] -= release[i];
+    available[i] += release[i];
   }
+}
+
+void printSafeSeq(){
+  int tempAvail[4] = {0, 0, 0, 0};
+  for(int i = 0; i < 4; i++){
+    tempAvail[i] = available[i];
+  }
+  int tempAlloc[5][4] = {{0, 0, 0, 0},
+			 {0, 0, 0, 0},
+			 {0, 0, 0, 0},
+			 {0, 0, 0, 0},
+			 {0, 0, 0, 0}};
+  int tempNeed[5][4] = {{6, 4, 7, 3},
+			{4, 2, 3, 2},
+			{2, 5, 3, 3},
+			{6, 3, 3, 2},
+			{5, 5, 7, 5}};
+  for(int i = 0; i < 5; i++){
+    for(int j = 0; j < 4; j++){
+      tempAlloc[i][j] = allocated[i][j];
+      tempNeed[i][j] = need[i][j];
+    }
+  }
+  
+  int c = 0;
+  int t = 0;
+  printf("Safe Sequence is: ");
+  int safe[5] = {0, 0, 0, 0, 0};
+  for(int i = 0; i < 5; i++){
+    if(safe[i] == 0){
+      c = 0;
+      for(int j = 0; j < 4; j++){
+	if(tempAvail[j] >= tempNeed[i][j]){
+	  c++;
+	}
+      }
+      if(c == 4){
+	printf("%d ", i);
+	int copyAlloc[4] = {tempAlloc[i][0], tempAlloc[i][1], tempAlloc[i][2], tempAlloc[i][3]};
+	for(int k = 0; k < 4; k++){
+	  tempNeed[i][k] += copyAlloc[k];
+	  tempAlloc[i][k] -= copyAlloc[k];
+	  tempAvail[k] += copyAlloc[k];
+	}
+	safe[i] = 1;
+	threadOrder[t] = i;
+	t++;
+	i = -1;
+      }
+    }
+  }
+  printf("\n");
 }
 
 //Print out status update
@@ -141,6 +194,37 @@ void statusUpdate(){
   }
 }
 
+void* runThread(void* arg){
+  int *c = (int *) arg;
+  
+  //for(int i=0;i<5;i++){
+    acquire(&mutex);
+    printf("--> Customer/Thread %d\n", c[0]);
+    printf("    Needed: ");
+    for(int i = 0; i < 4; i++){
+      printf("%d ", need[c[0]][i]);
+    }
+    printf("\n");
+    printf("    Available: ");
+    for(int i = 0; i < 4; i++){
+      printf("%d ", available[i]);
+    }
+    printf("\n");
+    printf("    Thread has started\n");
+    releaseResources(c[0], allocated[c[0]]);
+    printf("    Thread has finished\n");
+    printf("    Thread is releasing resources\n");
+    printf("    New  Available: ");
+    for(int i = 0; i < 4; i++){
+      printf("%d ", available[i]);
+    }
+    printf("\n");
+    release(&mutex);
+    // }
+  
+  return NULL;
+}
+
 int main(int argc, char *argv[]){
   available = malloc((argc - 1) * sizeof(int));
   char command[20];
@@ -149,6 +233,7 @@ int main(int argc, char *argv[]){
   int args[4] = {0, 0, 0, 0};
   int cust = 0, out = 0;
   char code[10];
+  pthread_t t1, t2, t3, t4, t5;
 
   //Print the number of customers
   printf("Number of Customers: %d\n", numCustomers);
@@ -204,8 +289,30 @@ int main(int argc, char *argv[]){
       statusUpdate();
     }else if(strcmp(code, "Run") == 0){
       printf("Run select\n");
+      printSafeSeq();
+
+      for(int i = 0; i < 5; i++){
+	pthread_create(&t1, NULL, runThread, &threadOrder[i]);
+	pthread_join(t1, NULL);
+	pthread_exit(&t1);
+      }
+      /*pthread_create(&t2, NULL, runThread, &threadOrder[1]);
+      pthread_create(&t3, NULL, runThread, &threadOrder[2]);
+      pthread_create(&t4, NULL, runThread, &threadOrder[3]);
+      pthread_create(&t5, NULL, runThread, &threadOrder[4]);
+      pthread_join(t1, NULL);
+      pthread_join(t2, NULL);
+      pthread_join(t3, NULL);
+      pthread_join(t4, NULL);
+      pthread_join(t5, NULL);*/
+      
     }else if(strcmp(code, "Exit") == 0){
       printf("Exit select");
+      pthread_exit(&t1);
+      pthread_exit(&t2);
+      pthread_exit(&t3);
+      pthread_exit(&t4);
+      pthread_exit(&t5);
       exit(0);
     }else{
       printf("Invalid input, use one of RQ, RL, Status, Run, Exit.\n");
